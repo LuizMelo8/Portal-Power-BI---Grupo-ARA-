@@ -16,9 +16,28 @@ const pool = new Pool({
 app.use(cors());
 app.use(express.json());
 
+// Aguardar conexão com o banco
+async function waitForDB(maxRetries = 10, delayMs = 2000) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const result = await pool.query('SELECT 1');
+      console.log('Conexão com banco estabelecida');
+      return true;
+    } catch (err) {
+      console.log(`Tentativa ${i + 1}/${maxRetries} de conexão com banco...`);
+      if (i < maxRetries - 1) {
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+      }
+    }
+  }
+  throw new Error('Não foi possível conectar ao banco após múltiplas tentativas');
+}
+
 // Criar tabela users se não existir
 async function initDB() {
   try {
+    await waitForDB();
+    
     await pool.query(`
       CREATE TABLE IF NOT EXISTS users (
         id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -31,9 +50,20 @@ async function initDB() {
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `);
-    console.log('Tabela users verificada/criada');
+    console.log('Tabela users verificada/criada com sucesso');
+    
+    // Verificar se a tabela foi criada
+    const tableExists = await pool.query(`
+      SELECT EXISTS (
+        SELECT 1 FROM information_schema.tables 
+        WHERE table_name = 'users'
+      );
+    `);
+    console.log('Tabela users existe:', tableExists.rows[0].exists);
+    
   } catch (err) {
-    console.error('Erro ao criar tabela:', err);
+    console.error('Erro fatal ao inicializar banco:', err.message);
+    throw err;
   }
 }
 
@@ -126,10 +156,25 @@ app.get('/api/health', (req, res) => {
 });
 
 // Iniciar servidor
-initDB().then(() => {
-  app.listen(PORT, () => {
-    console.log(`API rodando em porta ${PORT}`);
+initDB()
+  .then(() => {
+    const server = app.listen(PORT, () => {
+      console.log(`API iniciada com sucesso em porta ${PORT}`);
+      console.log(`Health check: http://localhost:${PORT}/api/health`);
+    });
+    
+    // Graceful shutdown
+    process.on('SIGTERM', () => {
+      console.log('SIGTERM recebido, encerrando gracefully...');
+      server.close(() => {
+        pool.end(() => process.exit(0));
+      });
+    });
+  })
+  .catch((err) => {
+    console.error('Falha crítica ao inicializar API:', err.message);
+    console.error('Stack:', err.stack);
+    process.exit(1);
   });
-});
 
 module.exports = app;
