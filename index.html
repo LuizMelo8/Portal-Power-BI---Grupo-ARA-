@@ -498,12 +498,57 @@
             alert('Exportação ainda não implementada');
         }
 
+        // Função para atualizar exibição de relatórios baseado nas seleções
+        function updateReportDisplay() {
+            const deptFPA = document.getElementById('dept-fpa').checked;
+            const companyAgricola = document.getElementById('company-agricola').checked;
+            const companyTextil = document.getElementById('company-textil').checked;
+            const adminUsers = document.getElementById('admin-users').checked;
+            const adminAudit = document.getElementById('admin-audit').checked;
+
+            // Esconder todos os relatórios por padrão
+            document.getElementById('reportArea').style.display = 'block';
+            document.getElementById('agricolaReport').style.display = 'none';
+            document.getElementById('textilReport').style.display = 'none';
+            document.getElementById('auditReport').style.display = 'none';
+
+            // FP&A + Agrícolas
+            if (deptFPA && companyAgricola) {
+                document.getElementById('reportArea').style.display = 'none';
+                document.getElementById('agricolaReport').style.display = 'block';
+            }
+            // FP&A + Têxtil
+            else if (deptFPA && companyTextil) {
+                document.getElementById('reportArea').style.display = 'none';
+                document.getElementById('textilReport').style.display = 'block';
+            }
+            // Auditoria de Logons
+            else if (adminAudit) {
+                document.getElementById('reportArea').style.display = 'none';
+                document.getElementById('auditReport').style.display = 'block';
+            }
+        }
+
+        // Adicionar event listeners nas checkboxes
+        document.addEventListener('DOMContentLoaded', () => {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', updateReportDisplay);
+            });
+        });
+
         // Verificar se usuário está logado
         window.addEventListener('load', () => {
             const user = sessionStorage.getItem('user');
             if (user) {
                 document.getElementById('loginForm').style.display = 'none';
                 document.getElementById('portalContainer').style.display = 'flex';
+                
+                // Atualizar user display
+                const userDisplay = document.getElementById('userDisplay');
+                if (userDisplay) {
+                    userDisplay.textContent = user.name || user.email;
+                }
             } else {
                 document.getElementById('loginForm').style.display = 'flex';
                 document.getElementById('portalContainer').style.display = 'none';
