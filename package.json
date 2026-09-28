@@ -1,0 +1,26 @@
+{
+  "name": "portal-ara-api",
+  "version": "1.0.0",
+  "description": "API Backend para Portal BI Grupo ARA",
+  "main": "api.js",
+  "scripts": {
+    "start": "node api.js",
+    "dev": "nodemon api.js"
+  },
+  "keywords": ["api", "portal", "grupo-ara"],
+  "author": "Luiz Melo",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "pg": "^8.11.0",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "engines": {
+    "node": "18.x"
+  }
+}
