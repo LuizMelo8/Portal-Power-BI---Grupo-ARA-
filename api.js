@@ -91,8 +91,8 @@ app.post('/api/login', async (req, res) => {
 
     // Log de acesso
     await pool.query(
-      `INSERT INTO login_logs (user_id, email, status) VALUES ($1, $2, $3)`,
-      [user.id, user.email, 'success']
+      `INSERT INTO login_logs (user_id, email, success) VALUES ($1, $2, $3)`,
+      [user.id, user.email, true]
     );
 
     res.json({
