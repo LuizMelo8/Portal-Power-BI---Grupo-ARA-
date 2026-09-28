@@ -1,559 +1,1223 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portal BI — Grupo ARA</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<html lang="pt-BR"><head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portal BI — Grupo ARA</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        body {
-            font-family: 'Aptos Narrow', sans-serif;
-            background: #ffffff;
-            color: #494949;
-        }
+:root {
+  --azul:    #0C4391;
+  --laranja: #FFA707;
+  --texto:   #494949;
+  --borda:   #D9D9D9;
+  --alt:     #F7F7F7;
+  --total:   #FFF3E0;
+  --erro:    #C00000;
+  --ok:      #008000;
+  --branco:  #FFFFFF;
 
-        .login-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            background: #0C4391;
-        }
+  --c-textil:   #0069B4;
+  --c-agricola: #009640;
+  --c-resorts:  #79834F;
+  --c-ei:       #F07D00;
+  --c-energia:  #FECC00;
+  --c-grupo:    #0C4391;
 
-        .login-box {
-            background: white;
-            padding: 40px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            width: 100%;
-            max-width: 400px;
-        }
+  --sidebar-w: 268px;
+  --header-h:  54px;
+}
 
-        .logo {
-            text-align: center;
-            margin-bottom: 30px;
-        }
+body {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 13.5px;
+  color: var(--texto);
+  background: #e8edf5;
+  height: 100vh;
+  overflow: hidden;
+}
 
-        .logo h1 {
-            color: #0C4391;
-            font-size: 24px;
-            margin-bottom: 8px;
-        }
+/* =========================================================
+   TELA DE LOGIN
+   ========================================================= */
+#tela-login {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(140deg, #071e45 0%, #0c4391 55%, #1558b0 100%);
+  z-index: 900;
+}
 
-        .logo p {
-            color: #FFA707;
-            font-size: 14px;
-        }
+.login-card {
+  background: white;
+  border-radius: 10px;
+  padding: 44px 52px 40px;
+  width: 420px;
+  box-shadow: 0 12px 48px rgba(0,0,0,0.28);
+}
 
-        .form-group {
-            margin-bottom: 20px;
-        }
+.login-logo {
+  text-align: center;
+  margin-bottom: 36px;
+}
 
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 500;
-            color: #494949;
-        }
+.login-marca {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 3.5px;
+  color: var(--azul);
+  text-transform: uppercase;
+  margin-bottom: 6px;
+}
 
-        input[type="email"],
-        input[type="password"] {
-            width: 100%;
-            padding: 12px;
-            border: 1px solid #D9D9D9;
-            border-radius: 4px;
-            font-family: 'Aptos Narrow', sans-serif;
-            font-size: 14px;
-            color: #494949;
-        }
+.login-titulo {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--texto);
+  letter-spacing: -0.4px;
+}
 
-        input[type="email"]:focus,
-        input[type="password"]:focus {
-            outline: none;
-            border-color: #FFA707;
-            box-shadow: 0 0 0 2px rgba(255, 167, 7, 0.1);
-        }
+.login-subtitulo {
+  font-size: 13px;
+  color: #9aa;
+  margin-top: 4px;
+}
 
-        .login-button {
-            width: 100%;
-            padding: 12px;
-            background: #0C4391;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            font-weight: 600;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
+.login-sep {
+  width: 36px; height: 3px;
+  background: var(--laranja);
+  border-radius: 2px;
+  margin: 14px auto 0;
+}
 
-        .login-button:hover {
-            background: #0a3570;
-        }
+.login-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 6px;
+}
 
-        .login-button:disabled {
-            background: #cccccc;
-            cursor: not-allowed;
-        }
+.login-input {
+  width: 100%;
+  padding: 11px 14px;
+  border: 1.5px solid var(--borda);
+  border-radius: 5px;
+  font-size: 14px;
+  color: var(--texto);
+  margin-bottom: 20px;
+  outline: none;
+  transition: border-color 0.18s;
+}
 
-        .error-message {
-            color: #C00000;
-            font-size: 14px;
-            margin-top: 10px;
-            text-align: center;
-        }
+.login-input:focus { border-color: var(--azul); }
 
-        .success-message {
-            color: #008000;
-            font-size: 14px;
-            margin-top: 10px;
-            text-align: center;
-        }
+.btn-entrar {
+  width: 100%;
+  padding: 13px;
+  background: var(--azul);
+  color: white;
+  border: none;
+  border-radius: 5px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: background 0.18s, transform 0.1s;
+}
 
-        .portal-container {
-            display: none;
-            flex-direction: column;
-            height: 100vh;
-        }
+.btn-entrar:hover  { background: #0a357a; }
+.btn-entrar:active { transform: scale(0.99); }
 
-        .header {
-            background: #0C4391;
-            color: white;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+.login-erro {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: #fff5f5;
+  border: 1px solid #f0b0b0;
+  border-radius: 5px;
+  color: var(--erro);
+  font-size: 13px;
+  text-align: center;
+  display: none;
+}
 
-        .header h1 {
-            font-size: 20px;
-        }
+/* =========================================================
+   PORTAL
+   ========================================================= */
+#portal {
+  display: none;
+  height: 100vh;
+  flex-direction: column;
+}
 
-        .logout-button {
-            background: #FFA707;
-            color: #0C4391;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: background 0.3s;
-        }
+/* ----- Cabeçalho ----- */
+.header {
+  height: var(--header-h);
+  background: var(--azul);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  gap: 14px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.22);
+  z-index: 10;
+}
 
-        .logout-button:hover {
-            background: #ff9500;
-        }
+.header-marca {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2.8px;
+  color: white;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
 
-        .main-content {
-            display: flex;
-            flex: 1;
-            overflow: hidden;
-        }
+.header-pipe {
+  width: 1px; height: 22px;
+  background: rgba(255,255,255,0.22);
+}
 
-        .sidebar {
-            width: 250px;
-            background: #f8f8f8;
-            border-right: 1px solid #D9D9D9;
-            overflow-y: auto;
-            padding: 20px;
-        }
+.header-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.65);
+  flex: 1;
+  white-space: nowrap;
+}
 
-        .sidebar-section {
-            margin-bottom: 20px;
-        }
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: rgba(255,255,255,0.88);
+  font-size: 13px;
+}
 
-        .sidebar-title {
-            font-weight: 600;
-            color: #494949;
-            margin-bottom: 10px;
-            font-size: 12px;
-            text-transform: uppercase;
-        }
+.header-avatar {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: var(--laranja);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
 
-        .checkbox-group {
-            display: flex;
-            flex-direction: column;
-        }
+.btn-menu {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.28);
+  color: white;
+  padding: 5px 13px;
+  border-radius: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+.btn-menu:hover { background: rgba(255,255,255,0.1); }
 
-        .checkbox-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 8px;
-            cursor: pointer;
-        }
+/* ----- Corpo ----- */
+.body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
 
-        .checkbox-item input[type="checkbox"] {
-            margin-right: 8px;
-            cursor: pointer;
-        }
+/* ----- Sidebar ----- */
+.sidebar {
+  width: var(--sidebar-w);
+  background: white;
+  border-right: 1px solid var(--borda);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex-shrink: 0;
+  transition: width 0.22s ease, opacity 0.22s ease;
+}
 
-        .checkbox-item label {
-            margin: 0;
-            cursor: pointer;
-            font-weight: normal;
-        }
+.sidebar.recolhida {
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
 
-        .content {
-            flex: 1;
-            overflow: auto;
-            padding: 20px;
-        }
+.sb-bloco {
+  padding: 14px 0 6px;
+  border-bottom: 1px solid var(--alt);
+}
+.sb-bloco:last-child { border-bottom: none; flex: 1; align-items: flex-end; display: flex; flex-direction: column; justify-content: flex-end; }
 
-        .iframe-container {
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
+.sb-titulo {
+  font-size: 10px;
+  font-weight: 700;
+  color: #bbb;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  padding: 0 18px 8px;
+}
 
-        .report-section {
-            background: white;
-            border: 1px solid #D9D9D9;
-            border-radius: 4px;
-            padding: 20px;
-            margin-bottom: 20px;
-        }
+/* Departamentos */
+.dep-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 18px;
+  cursor: pointer;
+  color: var(--texto);
+  font-size: 13.5px;
+  border-left: 3px solid transparent;
+  transition: background 0.13s, border-color 0.13s, color 0.13s;
+  user-select: none;
+}
+.dep-item:hover { background: var(--alt); }
+.dep-item.ativo {
+  border-left-color: var(--laranja);
+  background: #fff8ee;
+  color: #a06800;
+  font-weight: 600;
+}
+.dep-item svg { flex-shrink: 0; opacity: 0.55; }
+.dep-item.ativo svg { opacity: 1; }
 
-        .report-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #0C4391;
-            margin-bottom: 15px;
-        }
+/* Empresas */
+.emp-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 18px;
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.13s;
+}
+.emp-item:hover { background: var(--alt); }
 
-        .no-report {
-            text-align: center;
-            color: #999;
-            padding: 40px;
-        }
+.emp-cbox {
+  width: 16px; height: 16px;
+  border: 1.5px solid #ccc;
+  border-radius: 3px;
+  background: white;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, border-color 0.15s;
+}
+.emp-item.marcado .emp-cbox {
+  background: var(--azul);
+  border-color: var(--azul);
+}
+.emp-cbox::after {
+  content: '';
+  display: none;
+  width: 4px; height: 7px;
+  border: 2px solid white;
+  border-top: none; border-left: none;
+  transform: rotate(45deg) translate(-1px,-1px);
+}
+.emp-item.marcado .emp-cbox::after { display: block; }
 
-        .audit-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 15px;
-        }
+.emp-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition: transform 0.13s;
+}
+.emp-item.marcado .emp-dot { transform: scale(1.3); }
 
-        .audit-table th {
-            background: #FFA707;
-            color: white;
-            padding: 12px;
-            text-align: left;
-            font-weight: 600;
-        }
+.emp-label {
+  font-size: 13px;
+  color: var(--texto);
+  flex: 1;
+}
+.emp-item.marcado .emp-label { font-weight: 600; }
 
-        .audit-table td {
-            padding: 12px;
-            border-bottom: 1px solid #D9D9D9;
-        }
+/* Botões sidebar */
+.sb-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 13.5px;
+  color: var(--texto);
+  text-align: left;
+  transition: background 0.13s;
+  font-family: inherit;
+}
+.sb-btn:hover { background: var(--alt); }
+.sb-btn.usuarios { color: var(--azul); font-weight: 600; }
+.sb-btn.usuarios:hover { background: #eef3fd; }
+.sb-btn.sair { color: var(--erro); }
+.sb-btn.sair:hover { background: #fff5f5; }
 
-        .audit-table tr:nth-child(even) {
-            background: #F7F7F7;
-        }
-    </style>
+/* ----- Conteúdo ----- */
+.conteudo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.conteudo-barra {
+  padding: 0 24px;
+  height: 46px;
+  background: white;
+  border-bottom: 1px solid var(--borda);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.breadcrumb {
+  font-size: 13px;
+  color: #999;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+.breadcrumb .sep { color: var(--borda); }
+.breadcrumb .ativo { color: var(--texto); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.conteudo-area {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e8edf5;
+}
+
+.conteudo-area.com-relatorio {
+  background: white;
+}
+
+.conteudo-barra.oculta {
+  display: none;
+}
+
+.relatorio-frame {
+  width: 100%; height: 100%;
+  border: none; display: block;
+}
+
+/* Aviso */
+.aviso {
+  text-align: center;
+  padding: 52px 36px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid var(--borda);
+  max-width: 460px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+.aviso-ico { font-size: 44px; margin-bottom: 18px; opacity: 0.28; }
+.aviso-titulo { font-size: 15px; font-weight: 700; color: var(--texto); margin-bottom: 8px; }
+.aviso-txt { font-size: 13px; color: #999; line-height: 1.65; }
+
+/* =========================================================
+   GESTÃO DE USUÁRIOS
+   ========================================================= */
+.usuarios-panel {
+  width: 100%; height: 100%;
+  overflow-y: auto;
+  padding: 26px;
+  background: #e8edf5;
+}
+
+.p-titulo {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--texto);
+  margin-bottom: 22px;
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 400px 1fr;
+  gap: 22px;
+  align-items: start;
+}
+
+.card {
+  background: white;
+  border: 1px solid var(--borda);
+  border-radius: 7px;
+  padding: 22px;
+}
+
+.card-titulo {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.7px;
+  color: #aaa;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--alt);
+}
+
+/* Formulário */
+.fl { margin-bottom: 15px; }
+.fl label {
+  display: block;
+  font-size: 11px;
+  font-weight: 700;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 5px;
+}
+.fl input[type="text"],
+.fl input[type="email"],
+.fl input[type="password"] {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--borda);
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--texto);
+  outline: none;
+  transition: border-color 0.18s;
+  font-family: inherit;
+}
+.fl input:focus { border-color: var(--azul); }
+.fl input:disabled { background: var(--alt); color: #aaa; cursor: not-allowed; }
+
+.chk-grupo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+.chk-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 11px;
+  border: 1.5px solid var(--borda);
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--texto);
+  transition: all 0.13s;
+  user-select: none;
+  font-family: inherit;
+}
+.chk-item input { display: none; }
+.chk-item.sel {
+  background: var(--azul);
+  border-color: var(--azul);
+  color: white;
+  font-weight: 600;
+}
+
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.switch {
+  position: relative;
+  width: 36px; height: 20px;
+  flex-shrink: 0;
+}
+.switch input { display: none; }
+.sw-slider {
+  position: absolute; inset: 0;
+  background: var(--borda);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.sw-slider::before {
+  content: '';
+  position: absolute;
+  width: 14px; height: 14px;
+  left: 3px; top: 3px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.18s;
+}
+.switch input:checked + .sw-slider { background: var(--azul); }
+.switch input:checked + .sw-slider::before { transform: translateX(16px); }
+.switch input:disabled + .sw-slider { opacity: 0.5; cursor: not-allowed; }
+
+#f-admin-label { font-size: 13px; }
+
+.f-erro {
+  font-size: 12px;
+  color: var(--erro);
+  margin-top: 8px;
+  display: none;
+}
+
+.btn-p {
+  padding: 9px 20px;
+  background: var(--azul);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+.btn-p:hover { background: #0a357a; }
+
+.btn-s {
+  padding: 9px 16px;
+  background: white;
+  color: var(--texto);
+  border: 1.5px solid var(--borda);
+  border-radius: 4px;
+  font-size: 13px;
+  cursor: pointer;
+  margin-left: 8px;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+.btn-s:hover { background: var(--alt); }
+
+/* Tabela */
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th {
+  text-align: left;
+  padding: 9px 12px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #bbb;
+  background: var(--alt);
+  border-bottom: 1px solid var(--borda);
+}
+td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--alt);
+  color: var(--texto);
+  vertical-align: middle;
+}
+tr:last-child td { border-bottom: none; }
+tr:hover td { background: #fafbfd; }
+
+.badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.b-admin { background: #dce8fc; color: #0a357a; }
+.b-user  { background: var(--alt); color: #888; }
+
+.btn-ac {
+  padding: 4px 10px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  margin-right: 4px;
+  transition: opacity 0.13s;
+  font-family: inherit;
+}
+.btn-ac:hover { opacity: 0.75; }
+.btn-ed { background: #dce8fc; color: var(--azul); }
+.btn-ex { background: #fde8e8; color: var(--erro); }
+</style>
 </head>
 <body>
-    <!-- Login Form -->
-    <div id="loginForm" class="login-container">
-        <div class="login-box">
-            <div class="logo">
-                <h1>GRUPO ARA</h1>
-                <p>Portal de Business Intelligence</p>
-            </div>
-            <form id="formLogin" onsubmit="handleLogin(event)">
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" id="email" placeholder="seu@email.com" required>
-                </div>
-                <div class="form-group">
-                    <label for="password">Senha</label>
-                    <input type="password" id="password" placeholder="••••••••" required>
-                </div>
-                <button type="submit" class="login-button" id="loginBtn">Entrar</button>
-                <div id="loginError" class="error-message"></div>
-            </form>
+
+<!-- ========== TELA DE LOGIN ========== -->
+<div id="tela-login" style="display: none;">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="login-marca">Grupo ARA</div>
+      <div class="login-titulo">Portal BI</div>
+      <div class="login-subtitulo">Business Intelligence &amp; FP&amp;A</div>
+      <div class="login-sep"></div>
+    </div>
+    <label class="login-label" for="inp-email">E-mail corporativo</label>
+    <input class="login-input" type="email" id="inp-email" placeholder="nome@grupoara.com.br" autocomplete="username">
+    <label class="login-label" for="inp-senha">Senha</label>
+    <input class="login-input" type="password" id="inp-senha" placeholder="••••••••" autocomplete="current-password">
+    <button class="btn-entrar" onclick="doLogon()">Acessar Portal</button>
+    <div class="login-erro" id="login-erro">E-mail ou senha incorretos. Verifique e tente novamente.</div>
+  </div>
+</div>
+
+<!-- ========== PORTAL ========== -->
+<div id="portal" style="display: flex;">
+
+  <header class="header">
+    <span class="header-marca">Grupo ARA</span>
+    <div class="header-pipe"></div>
+    <span class="header-sub">Portal de Business Intelligence</span>
+    <div class="header-user">
+      <div class="header-avatar" id="hdr-avatar">LM</div>
+      <span id="hdr-nome">Luiz Melo</span>
+    </div>
+    <button class="btn-menu" onclick="toggleMenu()">☰ Menu</button>
+  </header>
+
+  <div class="body">
+
+    <nav class="sidebar" id="sidebar">
+
+      <div class="sb-bloco">
+        <div class="sb-titulo">Departamentos</div>
+        <div id="lista-deps"><div class="dep-item"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg><span>FP&amp;A</span></div><div class="dep-item"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg><span>Comercial</span></div><div class="dep-item"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg><span>Pessoal</span></div><div class="dep-item"><svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"></circle><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"></path></svg><span>Operação</span></div></div>
+      </div>
+
+      <div class="sb-bloco">
+        <div class="sb-titulo">Grupo de Empresas</div>
+        <div id="lista-emps"><div class="emp-item"><div class="emp-cbox"></div><div class="emp-dot" style="background:#0C4391"></div><span class="emp-label">Grupo ARA (Consolidado)</span></div><div class="emp-item"><div class="emp-cbox"></div><div class="emp-dot" style="background:#009640"></div><span class="emp-label">ARA Agrícolas</span></div><div class="emp-item"><div class="emp-cbox"></div><div class="emp-dot" style="background:#0069B4"></div><span class="emp-label">ARA Têxtil</span></div><div class="emp-item"><div class="emp-cbox"></div><div class="emp-dot" style="background:#FECC00"></div><span class="emp-label">ARA Energia</span></div><div class="emp-item"><div class="emp-cbox"></div><div class="emp-dot" style="background:#79834F"></div><span class="emp-label">ARA Resorts</span></div><div class="emp-item"><div class="emp-cbox"></div><div class="emp-dot" style="background:#F07D00"></div><span class="emp-label">ARA EI</span></div></div>
+      </div>
+
+      <div class="sb-bloco" id="bloco-admin" style="">
+        <div class="sb-titulo">Administração</div>
+        <button class="sb-btn usuarios" onclick="abrirUsuarios()">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Gestão de usuários
+        </button>
+      </div>
+
+      <div class="sb-bloco">
+        <button class="sb-btn sair" onclick="doLogoff()">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          Sair
+        </button>
+      </div>
+
+    </nav>
+
+    <div class="conteudo">
+      <div class="conteudo-barra">
+        <div class="breadcrumb">
+          <span>Portal ARA</span>
+          <span class="sep">/</span>
+          <span class="ativo" id="bc-ativo">Selecione um departamento e uma empresa</span>
         </div>
+      </div>
+      <div class="conteudo-area" id="conteudo-area" style="align-items: center; justify-content: center;"><div class="aviso">
+      <div class="aviso-ico">📊</div>
+      <div class="aviso-titulo">Nenhum relatório selecionado</div>
+      <div class="aviso-txt">Selecione um <strong>Departamento</strong> e uma <strong>Empresa</strong> no menu lateral para carregar o relatório.</div>
+    </div></div>
     </div>
 
-    <!-- Portal -->
-    <div id="portalContainer" class="portal-container">
-        <div class="header">
-            <h1>GRUPO ARA - Portal de Business Intelligence</h1>
-            <button class="logout-button" onclick="handleLogout()">Sair</button>
+  </div>
+</div>
+
+<script>
+// ===================================================
+// API CONFIGURATION
+// ===================================================
+const API_BASE = 'https://portal-power-bi-grupo-ara-production.up.railway.app';
+
+// ===================================================
+// DADOS
+// ===================================================
+const DEPS = {
+  fpa:      'FP&A',
+  comercial:'Comercial',
+  pessoal:  'Pessoal',
+  operacao: 'Operação'
+};
+
+const EMPS = {
+  grupo:    { label: 'Grupo ARA (Consolidado)', cor: '#0C4391' },
+  agricola: { label: 'ARA Agrícolas',           cor: '#009640' },
+  textil:   { label: 'ARA Têxtil',              cor: '#0069B4' },
+  energia:  { label: 'ARA Energia',             cor: '#FECC00' },
+  resorts:  { label: 'ARA Resorts',             cor: '#79834F' },
+  ei:       { label: 'ARA EI',                  cor: '#F07D00' }
+};
+
+// Cadastro de relatórios com iframes Power BI corretos
+const REPORTS = [
+  {
+    dep:   'fpa',
+    emp:   'agricola',
+    title: 'Projeto FP&A — ARA Agrícolas',
+    src:   'https://app.powerbi.com/view?r=eyJrIjoiZGQ1YTA4ODItOWM5NC00MTdlLTg3NTQtOTcwOGY5ODk5NTliIiwidCI6IjZmMTZmMjUzLTcwNTQtNDcwZC05YTc3LTFmMTM3MjQwMGNhMSJ9'
+  },
+  {
+    dep:   'fpa',
+    emp:   'textil',
+    title: 'Projeto FP&A — ARA Têxtil',
+    src:   'https://app.powerbi.com/view?r=eyJrIjoiODhjZmYyMzQtMGMzMy00ODEwLTk3ZjItN2Q1ZjNkZWU3NWU4IiwidCI6IjZmMTZmMjUzLTcwNTQtNDcwZC05YTc3LTFmMTM3MjQwMGNhMSJ9'
+  }
+];
+
+const ADMIN_EMAIL = 'adm@adm.com.br';
+
+// ===================================================
+// USUÁRIOS
+// ===================================================
+function loadUsers() {
+  const s = localStorage.getItem('ara_users');
+  if (s) return JSON.parse(s);
+  return [{
+    nome:  'Luiz Melo',
+    email: ADMIN_EMAIL,
+    senha: 'ara2026',
+    admin: true,
+    deps:  ['*'],
+    emps:  ['*']
+  }];
+}
+
+function saveUsers(u) {
+  localStorage.setItem('ara_users', JSON.stringify(u));
+}
+
+// ===================================================
+// ESTADO
+// ===================================================
+let depSel    = null;
+let empsSel   = new Set();
+let telaAtual = 'relatorio'; // 'relatorio' | 'usuarios'
+let editEmail = null;
+
+// ===================================================
+// SESSÃO
+// ===================================================
+async function doLogon() {
+  const email = (document.getElementById('inp-email').value || '').trim().toLowerCase();
+  const senha =  document.getElementById('inp-senha').value || '';
+
+  try {
+    const response = await fetch(`${API_BASE}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: senha })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      localStorage.setItem('ara_session', JSON.stringify({ email: data.user.email }));
+      const user = loadUsers().find(u => u.email.toLowerCase() === email);
+      applySession(user || data.user);
+      return;
+    }
+  } catch (err) {
+    console.log('Railway login indisponível, usando fallback local');
+  }
+
+  // Fallback para login local
+  const user = loadUsers().find(u => u.email.toLowerCase() === email && u.senha === senha);
+  if (!user) {
+    const el = document.getElementById('login-erro');
+    el.style.display = 'block';
+    setTimeout(() => el.style.display = 'none', 3500);
+    return;
+  }
+
+  localStorage.setItem('ara_session', JSON.stringify({ email: user.email }));
+  applySession(user);
+}
+
+function doLogoff() {
+  localStorage.removeItem('ara_session');
+  depSel = null; empsSel = new Set(); telaAtual = 'relatorio'; editEmail = null;
+  document.getElementById('portal').style.display = 'none';
+  document.getElementById('tela-login').style.display = 'flex';
+  document.getElementById('inp-senha').value = '';
+}
+
+function applySession(user) {
+  document.getElementById('tela-login').style.display = 'none';
+  document.getElementById('portal').style.display     = 'flex';
+
+  const iniciais = user.nome.trim().split(/\s+/).slice(0,2).map(p=>p[0].toUpperCase()).join('');
+  document.getElementById('hdr-avatar').textContent = iniciais;
+  document.getElementById('hdr-nome').textContent   = user.nome;
+  document.getElementById('bloco-admin').style.display = user.admin ? '' : 'none';
+
+  renderMenu(user);
+  render();
+}
+
+function getUser() {
+  const s = localStorage.getItem('ara_session');
+  if (!s) return null;
+  const { email } = JSON.parse(s);
+  return loadUsers().find(u => u.email.toLowerCase() === email.toLowerCase()) || null;
+}
+
+// ===================================================
+// MENU
+// ===================================================
+function renderMenu(user) {
+  const depIds = user.deps.includes('*') ? Object.keys(DEPS) : user.deps;
+  const empIds = user.emps.includes('*') ? Object.keys(EMPS) : user.emps;
+
+  // Departamentos
+  const ldeps = document.getElementById('lista-deps');
+  ldeps.innerHTML = '';
+  depIds.forEach(dep => {
+    const icons = {
+      fpa:      `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>`,
+      comercial:`<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>`,
+      pessoal:  `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+      operacao: `<svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>`
+    };
+    const d = document.createElement('div');
+    d.className = 'dep-item' + (depSel === dep ? ' ativo' : '');
+    d.innerHTML = (icons[dep]||'') + '<span>' + DEPS[dep] + '</span>';
+    d.onclick = () => {
+      depSel = depSel === dep ? null : dep;
+      telaAtual = 'relatorio';
+      renderMenu(getUser()); render();
+    };
+    ldeps.appendChild(d);
+  });
+
+  // Empresas
+  const lemps = document.getElementById('lista-emps');
+  lemps.innerHTML = '';
+  empIds.forEach(emp => {
+    const info = EMPS[emp];
+    const sel  = empsSel.has(emp);
+    const d = document.createElement('div');
+    d.className = 'emp-item' + (sel ? ' marcado' : '');
+    d.innerHTML = `<div class="emp-cbox"></div><div class="emp-dot" style="background:${info.cor}"></div><span class="emp-label">${info.label}</span>`;
+    d.onclick = () => {
+      empsSel.has(emp) ? empsSel.delete(emp) : empsSel.add(emp);
+      telaAtual = 'relatorio';
+      renderMenu(getUser()); render();
+    };
+    lemps.appendChild(d);
+  });
+}
+
+// ===================================================
+// RENDER CONTEÚDO
+// ===================================================
+function render() {
+  const area = document.getElementById('conteudo-area');
+  const bc   = document.getElementById('bc-ativo');
+  const barra = document.querySelector('.conteudo-barra');
+
+  if (telaAtual === 'usuarios') {
+    bc.textContent = 'Gestão de Usuários';
+    area.innerHTML = '';
+    area.style.alignItems = 'flex-start';
+    area.style.justifyContent = 'flex-start';
+    area.appendChild(buildUsuarios());
+    barra.classList.remove('oculta');
+    document.querySelector('.header').style.display = '';
+    return;
+  }
+
+  area.style.alignItems = 'center';
+  area.style.justifyContent = 'center';
+  barra.classList.remove('oculta');
+  document.querySelector('.header').style.display = '';
+
+  if (!depSel || empsSel.size === 0) {
+    bc.textContent = 'Selecione um departamento e uma empresa';
+    area.innerHTML = `<div class="aviso">
+      <div class="aviso-ico">📊</div>
+      <div class="aviso-titulo">Nenhum relatório selecionado</div>
+      <div class="aviso-txt">Selecione um <strong>Departamento</strong> e uma <strong>Empresa</strong> no menu lateral para carregar o relatório.</div>
+    </div>`;
+    document.querySelector('.header').style.display = '';
+    return;
+  }
+
+  if (empsSel.size > 1) {
+    bc.textContent = 'Múltiplas empresas selecionadas';
+    area.innerHTML = `<div class="aviso">
+      <div class="aviso-ico">⚠️</div>
+      <div class="aviso-titulo">Selecione apenas uma empresa</div>
+      <div class="aviso-txt">O portal exibe um relatório por vez. Desmarque as demais empresas para carregar o relatório desejado.</div>
+    </div>`;
+    document.querySelector('.header').style.display = '';
+    return;
+  }
+
+  const empKey = [...empsSel][0];
+  const rep    = REPORTS.find(r => r.dep === depSel && r.emp === empKey);
+
+  if (!rep) {
+    bc.textContent = `${DEPS[depSel]||depSel} — ${EMPS[empKey]?.label||empKey}`;
+    area.innerHTML = `<div class="aviso">
+      <div class="aviso-ico">🔍</div>
+      <div class="aviso-titulo">Relatório não disponível</div>
+      <div class="aviso-txt">Não há relatório cadastrado para <strong>${DEPS[depSel]||depSel}</strong> na unidade <strong>${EMPS[empKey]?.label||empKey}</strong>. Entre em contato com o administrador do portal.</div>
+    </div>`;
+    document.querySelector('.header').style.display = '';
+    return;
+  }
+
+  bc.textContent = rep.title;
+  area.innerHTML = `<iframe class="relatorio-frame" src="${rep.src}" allowfullscreen></iframe>`;
+  barra.classList.add('oculta');
+}
+
+// ===================================================
+// GESTÃO DE USUÁRIOS
+// ===================================================
+function abrirUsuarios() {
+  telaAtual = 'usuarios';
+  depSel = null; empsSel = new Set();
+  renderMenu(getUser());
+  render();
+}
+
+function buildUsuarios() {
+  const users = loadUsers();
+  const p = document.createElement('div');
+  p.className = 'usuarios-panel';
+
+  p.innerHTML = `
+  <div class="p-titulo">Gestão de Usuários</div>
+  <div class="grid2">
+    <div class="card" id="card-form">
+      <div class="card-titulo" id="f-titulo">Novo usuário</div>
+      <div class="fl"><label>Nome completo</label><input type="text"      id="f-nome"  placeholder="Nome Sobrenome"></div>
+      <div class="fl"><label>E-mail</label>        <input type="email"    id="f-email" placeholder="email@grupoara.com.br"></div>
+      <div class="fl"><label>Senha (mín. 6 caracteres)</label><input type="password" id="f-senha" placeholder="••••••"></div>
+      <div class="fl">
+        <label>Perfil</label>
+        <div class="switch-row">
+          <label class="switch"><input type="checkbox" id="f-admin" onchange="onAdminChange()"><span class="sw-slider"></span></label>
+          <span id="f-admin-label">Usuário padrão</span>
         </div>
-
-        <div class="main-content">
-            <div class="sidebar">
-                <div class="sidebar-section">
-                    <div class="sidebar-title">Departamentos</div>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="dept-fpa" value="FP&A">
-                            <label for="dept-fpa">FP&A</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="dept-comercial" value="Comercial">
-                            <label for="dept-comercial">Comercial</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="dept-pessoal" value="Pessoal">
-                            <label for="dept-pessoal">Pessoal</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="dept-operacao" value="Operação">
-                            <label for="dept-operacao">Operação</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="sidebar-section">
-                    <div class="sidebar-title">Grupo de Empresas</div>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="company-ara" value="Grupo ARA (Consolidado)">
-                            <label for="company-ara">Grupo ARA (Consolidado)</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="company-agricola" value="ARA Agrícolas">
-                            <label for="company-agricola">ARA Agrícolas</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="company-textil" value="ARA Têxtil">
-                            <label for="company-textil">ARA Têxtil</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="company-energia" value="ARA Energia">
-                            <label for="company-energia">ARA Energia</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="company-resorts" value="ARA Resorts">
-                            <label for="company-resorts">ARA Resorts</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="company-ei" value="ARA EI">
-                            <label for="company-ei">ARA EI</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="sidebar-section">
-                    <div class="sidebar-title">Administração</div>
-                    <div class="checkbox-group">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="admin-users" value="Gestão de usuários">
-                            <label for="admin-users">Gestão de usuários</label>
-                        </div>
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="admin-audit" value="Auditoria de Logons">
-                            <label for="admin-audit">Auditoria de Logons</label>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="content">
-                <div id="reportArea" class="report-section">
-                    <div class="no-report">
-                        <h2>Nenhum relatório selecionado</h2>
-                        <p>Selecione um Departamento e uma Empresa no menu lateral para carregar o relatório.</p>
-                    </div>
-                </div>
-
-                <!-- Power BI Iframes -->
-                <div id="agricolaReport" style="display: none;">
-                    <div class="report-title">Projeto FP&A - AGRICOLA</div>
-                    <iframe class="iframe-container" src="https://app.powerbi.com/view?r=eyJrIjoiZGQ1YTA4ODItOWM5NC00MTdlLTg3NTQtOTcwOGY5ODk5NTliIiwidCI6IjZmMTZmMjUzLTcwNTQtNDcwZC05YTc3LTFmMTM3MjQwMGNhMSJ9" allowfullscreen="true"></iframe>
-                </div>
-
-                <div id="textilReport" style="display: none;">
-                    <div class="report-title">Projeto FP&A - TEXTIL</div>
-                    <iframe class="iframe-container" src="https://app.powerbi.com/view?r=eyJrIjoiODhjZmYyMzQtMGMzMy00ODEwLTk3ZjItN2Q1ZjNkZWU3NWU4IiwidCI6IjZmMTZmMjUzLTcwNTQtNDcwZC05YTc3LTFmMTM3MjQwMGNhMSJ9" allowfullscreen="true"></iframe>
-                </div>
-
-                <div id="auditReport" style="display: none;">
-                    <div class="report-title">Auditoria de Logons</div>
-                    <div style="margin-top: 15px;">
-                        <input type="date" id="auditFrom" placeholder="De:">
-                        <input type="date" id="auditTo" placeholder="Até:">
-                        <select id="auditUser">
-                            <option value="">Todos os usuários</option>
-                        </select>
-                        <button onclick="filterAudit()">Filtrar</button>
-                        <button onclick="exportAuditCSV()">Exportar CSV</button>
-                    </div>
-                    <table class="audit-table" id="auditTable">
-                        <thead>
-                            <tr>
-                                <th>Usuário</th>
-                                <th>Email</th>
-                                <th>Data/Hora Login</th>
-                                <th>Data/Hora Logout</th>
-                                <th>Duração (min)</th>
-                                <th>Status</th>
-                            </tr>
-                        </thead>
-                        <tbody id="auditBody">
-                            <tr><td colspan="6" style="text-align: center; padding: 20px;">Carregando dados...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+      </div>
+      <div id="bloco-perm">
+        <div class="fl">
+          <label>Departamentos</label>
+          <div class="chk-grupo" id="f-deps">
+            ${Object.entries(DEPS).map(([k,v])=>`<label class="chk-item" onclick="onChk(this)"><input type="checkbox" value="${k}">${v}</label>`).join('')}
+            <label class="chk-item" onclick="onChkAll('deps',this)"><input type="checkbox" value="*">Todos</label>
+          </div>
         </div>
+        <div class="fl">
+          <label>Empresas</label>
+          <div class="chk-grupo" id="f-emps">
+            ${Object.entries(EMPS).map(([k,v])=>`<label class="chk-item" onclick="onChk(this)"><input type="checkbox" value="${k}">${v.label}</label>`).join('')}
+            <label class="chk-item" onclick="onChkAll('emps',this)"><input type="checkbox" value="*">Todas</label>
+          </div>
+        </div>
+      </div>
+      <div class="f-erro" id="f-erro"></div>
+      <div style="margin-top:18px">
+        <button class="btn-p" onclick="salvar()">Salvar</button>
+        <button class="btn-s" id="btn-cancel" onclick="resetForm()" style="display:none">Cancelar edição</button>
+      </div>
     </div>
+    <div class="card">
+      <div class="card-titulo" id="tbl-titulo">Usuários cadastrados (${users.length})</div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Nome</th><th>E-mail</th><th>Perfil</th><th>Ações</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>`;
 
-    <script>
-        const API_BASE = 'https://portal-power-bi-grupo-ara-production.up.railway.app';
+  setTimeout(() => preencheTabela(), 0);
+  return p;
+}
 
-        async function handleLogin(event) {
-            event.preventDefault();
+function preencheTabela() {
+  const tbody = document.getElementById('tbody');
+  const titu  = document.getElementById('tbl-titulo');
+  if (!tbody) return;
+  const users = loadUsers();
+  if (titu) titu.textContent = `Usuários cadastrados (${users.length})`;
+  tbody.innerHTML = '';
+  users.forEach(u => {
+    const def = u.email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${u.nome}</td>
+      <td style="color:#999;font-size:12px">${u.email}</td>
+      <td><span class="badge ${u.admin?'b-admin':'b-user'}">${u.admin?'Administrador':'Usuário'}</span></td>
+      <td>
+        <button class="btn-ac btn-ed" onclick="startEdit('${u.email}')">Editar</button>
+        ${!def?`<button class="btn-ac btn-ex" onclick="excluir('${u.email}')">Excluir</button>`:''}
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
 
-            const email = document.getElementById('email').value;
-            const password = document.getElementById('password').value;
-            const loginBtn = document.getElementById('loginBtn');
-            const errorDiv = document.getElementById('loginError');
+function onChk(el) {
+  setTimeout(() => el.classList.toggle('sel', el.querySelector('input').checked), 0);
+}
 
-            loginBtn.disabled = true;
-            errorDiv.textContent = '';
+function onChkAll(grupo, el) {
+  setTimeout(() => {
+    const checked = el.querySelector('input').checked;
+    document.querySelectorAll(`#f-${grupo} .chk-item`).forEach(c => {
+      c.querySelector('input').checked = false;
+      c.classList.remove('sel');
+    });
+    el.querySelector('input').checked = checked;
+    el.classList.toggle('sel', checked);
+  }, 0);
+}
 
-            try {
-                const response = await fetch(`${API_BASE}/api/login`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email, password })
-                });
+function onAdminChange() {
+  const adm = document.getElementById('f-admin').checked;
+  document.getElementById('f-admin-label').textContent = adm ? 'Administrador' : 'Usuário padrão';
+  document.getElementById('bloco-perm').style.display  = adm ? 'none' : '';
+}
 
-                const data = await response.json();
+function erroForm(msg) {
+  const el = document.getElementById('f-erro');
+  if (!el) return;
+  el.textContent = msg;
+  el.style.display = 'block';
+}
 
-                if (!response.ok) {
-                    errorDiv.textContent = data.error || 'Erro ao fazer login';
-                    loginBtn.disabled = false;
-                    return;
-                }
+function salvar() {
+  const nome  = (document.getElementById('f-nome').value||'').trim();
+  const email = (document.getElementById('f-email').value||'').trim().toLowerCase();
+  const senha =  document.getElementById('f-senha').value||'';
+  const admin =  document.getElementById('f-admin').checked;
+  const el    =  document.getElementById('f-erro');
+  if (el) el.style.display = 'none';
 
-                // Salvar usuário na sessionStorage
-                sessionStorage.setItem('user', JSON.stringify(data.user));
+  if (!nome||!email)            { erroForm('Nome e e-mail são obrigatórios.'); return; }
+  if (!editEmail&&!senha)       { erroForm('Informe uma senha para o novo usuário.'); return; }
+  if (senha&&senha.length<6)    { erroForm('A senha deve ter no mínimo 6 caracteres.'); return; }
 
-                // Mostrar portal, esconder login
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('portalContainer').style.display = 'flex';
+  let deps=[], emps=[];
+  if (admin) {
+    deps=['*']; emps=['*'];
+  } else {
+    const todoDeps = document.querySelector('#f-deps .chk-item:last-child input');
+    const todoEmps = document.querySelector('#f-emps .chk-item:last-child input');
+    deps = todoDeps?.checked ? ['*'] : [...document.querySelectorAll('#f-deps .chk-item:not(:last-child) input:checked')].map(i=>i.value);
+    emps = todoEmps?.checked ? ['*'] : [...document.querySelectorAll('#f-emps .chk-item:not(:last-child) input:checked')].map(i=>i.value);
+    if (!deps.length) { erroForm('Selecione ao menos um departamento.'); return; }
+    if (!emps.length) { erroForm('Selecione ao menos uma empresa.'); return; }
+  }
 
-                // Carregar dados de auditoria
-                loadAuditData();
+  const users = loadUsers();
+  if (editEmail) {
+    const def = editEmail.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+    const idx = users.findIndex(u=>u.email.toLowerCase()===editEmail.toLowerCase());
+    if (idx===-1) { erroForm('Usuário não encontrado.'); return; }
+    if (!def && email!==editEmail && users.some(u=>u.email.toLowerCase()===email&&u.email.toLowerCase()!==editEmail.toLowerCase())) {
+      erroForm('E-mail já cadastrado.'); return;
+    }
+    users[idx].nome = nome;
+    if (!def) { users[idx].email=email; users[idx].admin=admin; users[idx].deps=deps; users[idx].emps=emps; }
+    if (senha) users[idx].senha = senha;
+  } else {
+    if (users.some(u=>u.email.toLowerCase()===email)) { erroForm('E-mail já cadastrado.'); return; }
+    users.push({ nome, email, senha, admin, deps, emps });
+  }
 
-            } catch (error) {
-                errorDiv.textContent = 'Erro de conexão: ' + error.message;
-                loginBtn.disabled = false;
-            }
-        }
+  saveUsers(users);
+  resetForm();
+  preencheTabela();
+}
 
-        function handleLogout() {
-            sessionStorage.removeItem('user');
-            document.getElementById('portalContainer').style.display = 'none';
-            document.getElementById('loginForm').style.display = 'flex';
-            document.getElementById('formLogin').reset();
-            document.getElementById('loginError').textContent = '';
-        }
+function startEdit(email) {
+  const user = loadUsers().find(u=>u.email.toLowerCase()===email.toLowerCase());
+  if (!user) return;
+  const def = email.toLowerCase()===ADMIN_EMAIL.toLowerCase();
 
-        async function loadAuditData() {
-            try {
-                const response = await fetch(`${API_BASE}/api/login-logs`);
-                if (response.ok) {
-                    const logs = await response.json();
-                    populateAuditTable(logs);
-                }
-            } catch (error) {
-                console.error('Erro ao carregar auditoria:', error);
-            }
-        }
+  editEmail = user.email;
+  document.getElementById('f-titulo').textContent   = `Editar — ${user.nome}`;
+  document.getElementById('f-nome').value           = user.nome;
+  document.getElementById('f-email').value          = user.email;
+  document.getElementById('f-senha').value          = '';
+  document.getElementById('f-email').disabled       = def;
+  document.getElementById('f-admin').checked        = user.admin;
+  document.getElementById('f-admin').disabled       = def;
+  document.getElementById('f-admin-label').textContent = user.admin ? 'Administrador' : 'Usuário padrão';
+  document.getElementById('bloco-perm').style.display  = user.admin ? 'none' : '';
+  document.getElementById('btn-cancel').style.display  = '';
+  if (document.getElementById('f-erro')) document.getElementById('f-erro').style.display = 'none';
 
-        function populateAuditTable(logs) {
-            const tbody = document.getElementById('auditBody');
-            if (logs.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum registro</td></tr>';
-                return;
-            }
+  // Marca checkboxes
+  document.querySelectorAll('#f-deps .chk-item').forEach(el => {
+    const v = el.querySelector('input').value;
+    const c = user.deps.includes('*') ? v==='*' : user.deps.includes(v);
+    el.querySelector('input').checked = c;
+    el.classList.toggle('sel', c);
+  });
+  document.querySelectorAll('#f-emps .chk-item').forEach(el => {
+    const v = el.querySelector('input').value;
+    const c = user.emps.includes('*') ? v==='*' : user.emps.includes(v);
+    el.querySelector('input').checked = c;
+    el.classList.toggle('sel', c);
+  });
 
-            tbody.innerHTML = logs.map(log => `
-                <tr>
-                    <td>${log.name || 'N/A'}</td>
-                    <td>${log.email}</td>
-                    <td>${new Date(log.login_at).toLocaleString('pt-BR')}</td>
-                    <td>${log.logout_at ? new Date(log.logout_at).toLocaleString('pt-BR') : 'Online'}</td>
-                    <td>${log.duration_minutes || '-'}</td>
-                    <td>${log.status}</td>
-                </tr>
-            `).join('');
-        }
+  document.getElementById('card-form').scrollIntoView({ behavior:'smooth', block:'start' });
+}
 
-        function filterAudit() {
-            // Placeholder para filtro
-            alert('Filtro ainda não implementado');
-        }
+function resetForm() {
+  editEmail = null;
+  ['f-titulo','f-nome','f-email','f-senha'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (id==='f-titulo') el.textContent='Novo usuário';
+    else { el.value=''; el.disabled=false; }
+  });
+  document.getElementById('f-admin').checked  = false;
+  document.getElementById('f-admin').disabled = false;
+  document.getElementById('f-admin-label').textContent = 'Usuário padrão';
+  document.getElementById('bloco-perm').style.display  = '';
+  document.getElementById('btn-cancel').style.display  = 'none';
+  const fe = document.getElementById('f-erro');
+  if (fe) fe.style.display = 'none';
+  document.querySelectorAll('.chk-item').forEach(el => {
+    el.querySelector('input').checked = false;
+    el.classList.remove('sel');
+  });
+}
 
-        function exportAuditCSV() {
-            // Placeholder para exportação
-            alert('Exportação ainda não implementada');
-        }
+function excluir(email) {
+  if (email.toLowerCase()===ADMIN_EMAIL.toLowerCase()) return;
+  const user = loadUsers().find(u=>u.email.toLowerCase()===email.toLowerCase());
+  if (!confirm(`Excluir o usuário "${user?.nome||email}"?`)) return;
+  saveUsers(loadUsers().filter(u=>u.email.toLowerCase()!==email.toLowerCase()));
+  preencheTabela();
+}
 
-        // Função para atualizar exibição de relatórios baseado nas seleções
-        function updateReportDisplay() {
-            const deptFPA = document.getElementById('dept-fpa').checked;
-            const companyAgricola = document.getElementById('company-agricola').checked;
-            const companyTextil = document.getElementById('company-textil').checked;
-            const adminUsers = document.getElementById('admin-users').checked;
-            const adminAudit = document.getElementById('admin-audit').checked;
+// ===================================================
+// UI
+// ===================================================
+function toggleMenu() {
+  document.getElementById('sidebar').classList.toggle('recolhida');
+}
 
-            // Esconder todos os relatórios por padrão
-            document.getElementById('reportArea').style.display = 'block';
-            document.getElementById('agricolaReport').style.display = 'none';
-            document.getElementById('textilReport').style.display = 'none';
-            document.getElementById('auditReport').style.display = 'none';
+document.addEventListener('keydown', e => {
+  if (e.key==='Enter' && document.getElementById('tela-login').style.display !== 'none') doLogon();
+});
 
-            // FP&A + Agrícolas
-            if (deptFPA && companyAgricola) {
-                document.getElementById('reportArea').style.display = 'none';
-                document.getElementById('agricolaReport').style.display = 'block';
-            }
-            // FP&A + Têxtil
-            else if (deptFPA && companyTextil) {
-                document.getElementById('reportArea').style.display = 'none';
-                document.getElementById('textilReport').style.display = 'block';
-            }
-            // Auditoria de Logons
-            else if (adminAudit) {
-                document.getElementById('reportArea').style.display = 'none';
-                document.getElementById('auditReport').style.display = 'block';
-            }
-        }
+// ===================================================
+// INICIALIZAÇÃO
+// ===================================================
+(function init() {
+  const s = localStorage.getItem('ara_session');
+  if (s) {
+    try {
+      const { email } = JSON.parse(s);
+      const u = loadUsers().find(u=>u.email.toLowerCase()===email.toLowerCase());
+      if (u) { applySession(u); return; }
+    } catch(e) {}
+    localStorage.removeItem('ara_session');
+  }
+  document.getElementById('tela-login').style.display = 'flex';
+})();
+</script>
 
-        // Adicionar event listeners nas checkboxes
-        document.addEventListener('DOMContentLoaded', () => {
-            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
-            checkboxes.forEach(checkbox => {
-                checkbox.addEventListener('change', updateReportDisplay);
-            });
-        });
-
-        // Verificar se usuário está logado
-        window.addEventListener('load', () => {
-            const user = sessionStorage.getItem('user');
-            if (user) {
-                document.getElementById('loginForm').style.display = 'none';
-                document.getElementById('portalContainer').style.display = 'flex';
-                
-                // Atualizar user display
-                const userDisplay = document.getElementById('userDisplay');
-                if (userDisplay) {
-                    userDisplay.textContent = user.name || user.email;
-                }
-            } else {
-                document.getElementById('loginForm').style.display = 'flex';
-                document.getElementById('portalContainer').style.display = 'none';
-            }
-        });
-    </script>
-</body>
-</html>
+</body></html>
