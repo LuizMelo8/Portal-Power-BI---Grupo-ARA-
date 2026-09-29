@@ -89,6 +89,16 @@ async function isAdmin(req, res, next) {
   }
 }
 
+// Middleware: exige token valido (qualquer usuario autenticado)
+function requireAuth(req, res, next) {
+  const session = readToken(req);
+  if (!session) {
+    return res.status(401).json({ error: 'Sessão inválida ou expirada' });
+  }
+  req.userEmail = session.email;
+  next();
+}
+
 function parseList(value) {
   if (Array.isArray(value)) return value;
   try {
@@ -310,6 +320,50 @@ app.get('/api/users/export/passwords', isAdmin, async (req, res) => {
   } catch (err) {
     console.error('Erro ao exportar senhas:', err);
     res.status(500).json({ error: 'Erro ao exportar senhas' });
+  }
+});
+
+// ==================== TROCA DA PROPRIA SENHA (QUALQUER USUARIO) ====================
+
+// PUT /api/me/password - usuario autenticado troca a propria senha
+app.put('/api/me/password', requireAuth, async (req, res) => {
+  try {
+    const { current_password, new_password } = req.body;
+
+    if (!current_password || !new_password) {
+      return res.status(400).json({ error: 'Senha atual e nova senha são obrigatórias' });
+    }
+    if (String(new_password).length < 6) {
+      return res.status(400).json({ error: 'A nova senha deve ter no mínimo 6 caracteres' });
+    }
+    if (new_password === current_password) {
+      return res.status(400).json({ error: 'A nova senha deve ser diferente da atual' });
+    }
+
+    const result = await pool.query(
+      'SELECT password_hash FROM users_portal WHERE LOWER(email) = LOWER($1)',
+      [req.userEmail]
+    );
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    const senhaConfere = await bcrypt.compare(current_password, result.rows[0].password_hash);
+    if (!senhaConfere) {
+      return res.status(400).json({ error: 'Senha atual incorreta' });
+    }
+
+    const novoHash = await bcrypt.hash(new_password, 10);
+    await pool.query(
+      'UPDATE users_portal SET password_hash = $1, updated_at = NOW() WHERE LOWER(email) = LOWER($2)',
+      [novoHash, req.userEmail]
+    );
+
+    console.log(`[AUDITORIA] ${req.userEmail} alterou a própria senha em ${new Date().toISOString()}`);
+    res.json({ message: 'Senha alterada com sucesso' });
+  } catch (err) {
+    console.error('Erro ao alterar a própria senha:', err);
+    res.status(500).json({ error: 'Erro ao alterar a senha' });
   }
 });
 
