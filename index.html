@@ -691,6 +691,14 @@ tr:hover td { background: #fafbfd; }
       </div>
 
       <div class="sb-bloco">
+        <div class="sb-titulo">Minha conta</div>
+        <button class="sb-btn conta" onclick="abrirSenha()">
+          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+          Alterar minha senha
+        </button>
+      </div>
+
+      <div class="sb-bloco">
         <button class="sb-btn sair" onclick="doLogoff()">
           <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
           Sair
@@ -923,6 +931,17 @@ function render() {
   const area = document.getElementById('conteudo-area');
   const bc   = document.getElementById('bc-ativo');
   const barra = document.querySelector('.conteudo-barra');
+
+  if (telaAtual === 'senha') {
+    bc.textContent = 'Alterar minha senha';
+    area.innerHTML = '';
+    area.style.alignItems = 'flex-start';
+    area.style.justifyContent = 'flex-start';
+    area.appendChild(buildSenha());
+    barra.classList.remove('oculta');
+    document.querySelector('.header').style.display = '';
+    return;
+  }
 
   if (telaAtual === 'usuarios') {
     bc.textContent = 'Gestão de Usuários';
@@ -1217,6 +1236,59 @@ async function excluir(email) {
     preencheTabela();
   } catch (err) {
     alert(err.message || 'Não foi possível excluir o usuário.');
+  }
+}
+
+function abrirSenha() {
+  telaAtual = 'senha';
+  depSel = null; empsSel = new Set();
+  renderMenu(getUser());
+  render();
+}
+
+function buildSenha() {
+  const p = document.createElement('div');
+  p.className = 'usuarios-panel';
+  p.innerHTML = `
+  <div class="p-titulo">Alterar minha senha</div>
+  <div class="card" style="max-width:440px">
+    <div class="card-titulo">Segurança da conta</div>
+    <div class="fl"><label>Senha atual</label><input type="password" id="s-atual" autocomplete="current-password"></div>
+    <div class="fl"><label>Nova senha (mín. 6 caracteres)</label><input type="password" id="s-nova" autocomplete="new-password"></div>
+    <div class="fl"><label>Confirmar nova senha</label><input type="password" id="s-conf" autocomplete="new-password"></div>
+    <div class="f-erro" id="s-erro"></div>
+    <div id="s-ok" style="font-size:12px;color:#008000;margin-top:8px;display:none"></div>
+    <div style="margin-top:18px"><button class="btn-p" id="s-btn" onclick="trocarSenha()">Salvar nova senha</button></div>
+  </div>`;
+  return p;
+}
+
+async function trocarSenha() {
+  const atual = document.getElementById('s-atual').value || '';
+  const nova  = document.getElementById('s-nova').value || '';
+  const conf  = document.getElementById('s-conf').value || '';
+  const erro  = document.getElementById('s-erro');
+  const ok    = document.getElementById('s-ok');
+  const btn   = document.getElementById('s-btn');
+  const falha = msg => { ok.style.display = 'none'; erro.textContent = msg; erro.style.display = 'block'; };
+
+  erro.style.display = 'none';
+  ok.style.display = 'none';
+  if (!atual || !nova || !conf) return falha('Preencha todos os campos.');
+  if (nova.length < 6)          return falha('A nova senha deve ter no mínimo 6 caracteres.');
+  if (nova !== conf)            return falha('A confirmação não confere com a nova senha.');
+  if (nova === atual)           return falha('A nova senha deve ser diferente da atual.');
+
+  try {
+    btn.disabled = true;
+    await api('/api/me/password', { method: 'PUT', body: JSON.stringify({ current_password: atual, new_password: nova }) });
+    ['s-atual', 's-nova', 's-conf'].forEach(id => { document.getElementById(id).value = ''; });
+    ok.textContent = 'Senha alterada com sucesso.';
+    ok.style.display = 'block';
+  } catch (err) {
+    falha(err.message || 'Não foi possível alterar a senha.');
+  } finally {
+    btn.disabled = false;
   }
 }
 
