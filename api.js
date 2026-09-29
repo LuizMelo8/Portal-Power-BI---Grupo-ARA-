@@ -155,6 +155,128 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// ========== CRUD USUÁRIOS PORTAL ==========
+
+// GET /api/users - Listar todos os usuários
+app.get('/api/users', async (req, res) => {
+  try {
+    const result = await pool.query(
+      'SELECT id, email, name, is_admin, departments, companies, created_at FROM users_portal ORDER BY created_at DESC'
+    );
+    res.json(result.rows);
+  } catch (err) {
+    console.error('Erro ao listar usuários:', err);
+    res.status(500).json({ error: 'Erro ao listar usuários' });
+  }
+});
+
+// POST /api/users - Criar novo usuário
+app.post('/api/users', async (req, res) => {
+  const { email, password, name, is_admin, departments, companies } = req.body;
+
+  if (!email || !password || !name) {
+    return res.status(400).json({ error: 'Email, senha e nome são obrigatórios' });
+  }
+
+  try {
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const depsJSON = JSON.stringify(departments || []);
+    const compsJSON = JSON.stringify(companies || []);
+
+    const result = await pool.query(
+      'INSERT INTO users_portal (email, password_hash, name, is_admin, departments, companies) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, email, name, is_admin, created_at',
+      [email.toLowerCase(), hashedPassword, name, is_admin || false, depsJSON, compsJSON]
+    );
+
+    res.status(201).json({ success: true, user: result.rows[0] });
+  } catch (err) {
+    console.error('Erro ao criar usuário:', err);
+    if (err.code === '23505') { // Unique violation
+      res.status(409).json({ error: 'Email já cadastrado' });
+    } else {
+      res.status(500).json({ error: 'Erro ao criar usuário' });
+    }
+  }
+});
+
+// PUT /api/users/:email - Atualizar usuário
+app.put('/api/users/:email', async (req, res) => {
+  const emailParam = req.params.email.toLowerCase();
+  const { password, name, is_admin, departments, companies } = req.body;
+
+  try {
+    let query = 'UPDATE users_portal SET updated_at = CURRENT_TIMESTAMP';
+    const params = [];
+    let paramCount = 1;
+
+    if (name) {
+      query += `, name = $${paramCount}`;
+      params.push(name);
+      paramCount++;
+    }
+    if (typeof is_admin === 'boolean') {
+      query += `, is_admin = $${paramCount}`;
+      params.push(is_admin);
+      paramCount++;
+    }
+    if (departments) {
+      query += `, departments = $${paramCount}`;
+      params.push(JSON.stringify(departments));
+      paramCount++;
+    }
+    if (companies) {
+      query += `, companies = $${paramCount}`;
+      params.push(JSON.stringify(companies));
+      paramCount++;
+    }
+    if (password) {
+      const hashedPassword = await bcrypt.hash(password, 10);
+      query += `, password_hash = $${paramCount}`;
+      params.push(hashedPassword);
+      paramCount++;
+    }
+
+    query += ` WHERE LOWER(email) = $${paramCount} RETURNING id, email, name, is_admin, created_at`;
+    params.push(emailParam);
+
+    const result = await pool.query(query, params);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    res.json({ success: true, user: result.rows[0] });
+  } catch (err) {
+    console.error('Erro ao atualizar usuário:', err);
+    res.status(500).json({ error: 'Erro ao atualizar usuário' });
+  }
+});
+
+// DELETE /api/users/:email - Deletar usuário
+app.delete('/api/users/:email', async (req, res) => {
+  const emailParam = req.params.email.toLowerCase();
+
+  if (emailParam === 'adm@adm.com.br') {
+    return res.status(403).json({ error: 'Não é permitido deletar o usuário admin padrão' });
+  }
+
+  try {
+    const result = await pool.query(
+      'DELETE FROM users_portal WHERE LOWER(email) = $1 RETURNING email',
+      [emailParam]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado' });
+    }
+
+    res.json({ success: true, message: 'Usuário deletado com sucesso' });
+  } catch (err) {
+    console.error('Erro ao deletar usuário:', err);
+    res.status(500).json({ error: 'Erro ao deletar usuário' });
+  }
+});
+
 // Iniciar servidor
 initDB()
   .then(() => {
