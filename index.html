@@ -769,21 +769,46 @@ const ADMIN_EMAIL = 'adm@adm.com.br';
 // ===================================================
 // USUÁRIOS
 // ===================================================
-function loadUsers() {
-  const s = localStorage.getItem('ara_users');
-  if (s) return JSON.parse(s);
-  return [{
-    nome:  'Luiz Melo',
-    email: ADMIN_EMAIL,
-    senha: 'ara2026',
-    admin: true,
-    deps:  ['*'],
-    emps:  ['*']
-  }];
+let USERS_CACHE = [];
+
+function fromApi(u) {
+  const lista = v => {
+    if (Array.isArray(v)) return v;
+    try { const p = JSON.parse(v || '[]'); return Array.isArray(p) ? p : []; } catch (e) { return []; }
+  };
+  return { id: u.id, nome: u.name, email: u.email, admin: !!u.is_admin, deps: lista(u.departments), emps: lista(u.companies) };
 }
 
-function saveUsers(u) {
-  localStorage.setItem('ara_users', JSON.stringify(u));
+function loadUsers() { return USERS_CACHE; }
+
+function getSession() {
+  try { return JSON.parse(localStorage.getItem('ara_session') || 'null'); } catch (e) { return null; }
+}
+
+async function api(path, opts = {}) {
+  const s = getSession();
+  const headers = { 'Content-Type': 'application/json' };
+  if (s && s.token) headers['Authorization'] = 'Bearer ' + s.token;
+  let r;
+  try {
+    r = await fetch(API_BASE + path, { ...opts, headers });
+  } catch (e) {
+    throw new Error('Não foi possível conectar ao servidor. Tente novamente em instantes.');
+  }
+  let data = null;
+  try { data = await r.json(); } catch (e) {}
+  if (r.status === 401 && path !== '/api/login') {
+    doLogoff();
+    throw new Error('Sessão expirada. Faça login novamente.');
+  }
+  if (!r.ok) throw new Error((data && data.error) || ('Erro ' + r.status));
+  return data;
+}
+
+async function syncUsers() {
+  const lista = await api('/api/users');
+  USERS_CACHE = lista.map(fromApi);
+  return USERS_CACHE;
 }
 
 // ===================================================
@@ -800,40 +825,27 @@ let editEmail = null;
 async function doLogon() {
   const email = (document.getElementById('inp-email').value || '').trim().toLowerCase();
   const senha =  document.getElementById('inp-senha').value || '';
+  const el = document.getElementById('login-erro');
+  const msgPadrao = 'E-mail ou senha incorretos. Verifique e tente novamente.';
 
+  let data;
   try {
-    const response = await fetch(`${API_BASE}/api/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password: senha })
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      localStorage.setItem('ara_session', JSON.stringify({ email: data.user.email }));
-      const user = loadUsers().find(u => u.email.toLowerCase() === email);
-      applySession(user || data.user);
-      return;
-    }
+    data = await api('/api/login', { method: 'POST', body: JSON.stringify({ email, password: senha }) });
   } catch (err) {
-    console.log('Railway login indisponível, usando fallback local');
-  }
-
-  // Fallback para login local
-  const user = loadUsers().find(u => u.email.toLowerCase() === email && u.senha === senha);
-  if (!user) {
-    const el = document.getElementById('login-erro');
+    el.textContent = /conectar/.test(err.message) ? err.message : msgPadrao;
     el.style.display = 'block';
-    setTimeout(() => el.style.display = 'none', 3500);
+    setTimeout(() => { el.style.display = 'none'; }, 4500);
     return;
   }
 
-  localStorage.setItem('ara_session', JSON.stringify({ email: user.email }));
+  const user = fromApi(data.user);
+  localStorage.setItem('ara_session', JSON.stringify({ email: user.email, token: data.token, exp: data.expires_at, user }));
   applySession(user);
 }
 
 function doLogoff() {
   localStorage.removeItem('ara_session');
+  USERS_CACHE = [];
   depSel = null; empsSel = new Set(); telaAtual = 'relatorio'; editEmail = null;
   document.getElementById('portal').style.display = 'none';
   document.getElementById('tela-login').style.display = 'flex';
@@ -854,10 +866,8 @@ function applySession(user) {
 }
 
 function getUser() {
-  const s = localStorage.getItem('ara_session');
-  if (!s) return null;
-  const { email } = JSON.parse(s);
-  return loadUsers().find(u => u.email.toLowerCase() === email.toLowerCase()) || null;
+  const s = getSession();
+  return (s && s.user) || null;
 }
 
 // ===================================================
@@ -1034,7 +1044,10 @@ function buildUsuarios() {
     </div>
   </div>`;
 
-  setTimeout(() => preencheTabela(), 0);
+  setTimeout(async () => {
+    try { await syncUsers(); } catch (err) { erroForm(err.message || 'Não foi possível carregar os usuários.'); }
+    preencheTabela();
+  }, 0);
   return p;
 }
 
@@ -1089,7 +1102,7 @@ function erroForm(msg) {
   el.style.display = 'block';
 }
 
-function salvar() {
+async function salvar() {
   const nome  = (document.getElementById('f-nome').value||'').trim();
   const email = (document.getElementById('f-email').value||'').trim().toLowerCase();
   const senha =  document.getElementById('f-senha').value||'';
@@ -1114,24 +1127,28 @@ function salvar() {
   }
 
   const users = loadUsers();
-  if (editEmail) {
-    const def = editEmail.toLowerCase() === ADMIN_EMAIL.toLowerCase();
-    const idx = users.findIndex(u=>u.email.toLowerCase()===editEmail.toLowerCase());
-    if (idx===-1) { erroForm('Usuário não encontrado.'); return; }
-    if (!def && email!==editEmail && users.some(u=>u.email.toLowerCase()===email&&u.email.toLowerCase()!==editEmail.toLowerCase())) {
-      erroForm('E-mail já cadastrado.'); return;
+  const btn = document.querySelector('#card-form .btn-p');
+  try {
+    if (btn) btn.disabled = true;
+    if (editEmail) {
+      const def = editEmail.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+      if (!users.some(u => u.email.toLowerCase() === editEmail.toLowerCase())) { erroForm('Usuário não encontrado.'); return; }
+      const body = { name: nome };
+      if (senha) body.password = senha;
+      if (!def) { body.is_admin = admin; body.departments = deps; body.companies = emps; }
+      await api('/api/users/' + encodeURIComponent(editEmail), { method: 'PUT', body: JSON.stringify(body) });
+    } else {
+      if (users.some(u => u.email.toLowerCase() === email)) { erroForm('E-mail já cadastrado.'); return; }
+      await api('/api/users', { method: 'POST', body: JSON.stringify({ email, password: senha, name: nome, is_admin: admin, departments: deps, companies: emps }) });
     }
-    users[idx].nome = nome;
-    if (!def) { users[idx].email=email; users[idx].admin=admin; users[idx].deps=deps; users[idx].emps=emps; }
-    if (senha) users[idx].senha = senha;
-  } else {
-    if (users.some(u=>u.email.toLowerCase()===email)) { erroForm('E-mail já cadastrado.'); return; }
-    users.push({ nome, email, senha, admin, deps, emps });
+    await syncUsers();
+    resetForm();
+    preencheTabela();
+  } catch (err) {
+    erroForm(err.message || 'Não foi possível salvar o usuário.');
+  } finally {
+    if (btn) btn.disabled = false;
   }
-
-  saveUsers(users);
-  resetForm();
-  preencheTabela();
 }
 
 function startEdit(email) {
@@ -1144,7 +1161,7 @@ function startEdit(email) {
   document.getElementById('f-nome').value           = user.nome;
   document.getElementById('f-email').value          = user.email;
   document.getElementById('f-senha').value          = '';
-  document.getElementById('f-email').disabled       = def;
+  document.getElementById('f-email').disabled       = true;
   document.getElementById('f-admin').checked        = user.admin;
   document.getElementById('f-admin').disabled       = def;
   document.getElementById('f-admin-label').textContent = user.admin ? 'Administrador' : 'Usuário padrão';
@@ -1190,12 +1207,17 @@ function resetForm() {
   });
 }
 
-function excluir(email) {
+async function excluir(email) {
   if (email.toLowerCase()===ADMIN_EMAIL.toLowerCase()) return;
   const user = loadUsers().find(u=>u.email.toLowerCase()===email.toLowerCase());
   if (!confirm(`Excluir o usuário "${user?.nome||email}"?`)) return;
-  saveUsers(loadUsers().filter(u=>u.email.toLowerCase()!==email.toLowerCase()));
-  preencheTabela();
+  try {
+    await api('/api/users/' + encodeURIComponent(email), { method: 'DELETE' });
+    await syncUsers();
+    preencheTabela();
+  } catch (err) {
+    alert(err.message || 'Não foi possível excluir o usuário.');
+  }
 }
 
 // ===================================================
@@ -1213,15 +1235,12 @@ document.addEventListener('keydown', e => {
 // INICIALIZAÇÃO
 // ===================================================
 (function init() {
-  const s = localStorage.getItem('ara_session');
-  if (s) {
-    try {
-      const { email } = JSON.parse(s);
-      const u = loadUsers().find(u=>u.email.toLowerCase()===email.toLowerCase());
-      if (u) { applySession(u); return; }
-    } catch(e) {}
-    localStorage.removeItem('ara_session');
+  const s = getSession();
+  if (s && s.user && s.user.nome && s.token && (!s.exp || s.exp > Date.now())) {
+    applySession(s.user);
+    return;
   }
+  localStorage.removeItem('ara_session');
   document.getElementById('tela-login').style.display = 'flex';
 })();
 </script>
