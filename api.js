@@ -15,6 +15,7 @@ const pool = new Pool({
 const ALLOWED_ORIGINS = [
   'https://luizmelo8.github.io',
   'https://luizfprof-lgtm.github.io',
+  'https://grupoara.portal.bi',
   ...(process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',').map(o => o.trim()) : [])
 ];
 
