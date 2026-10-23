@@ -16,6 +16,7 @@ const ALLOWED_ORIGINS = [
   'https://luizmelo8.github.io',
   'https://luizfprof-lgtm.github.io',
   'https://grupoara.portal.bi',
+  'https://grupoara8.github.io',
   ...(process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',').map(o => o.trim()) : [])
 ];
 
